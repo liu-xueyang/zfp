@@ -7,6 +7,9 @@
 #include <iomanip>
 #include <iostream>
 #include <sstream>
+#include <ctime>
+#include <ratio>
+#include <chrono>
 #include "zfp/array2.hpp"
 #include "zfp/constarray2.hpp"
 #include "zfp/codec/gencodec.hpp"
@@ -289,12 +292,25 @@ template <class state, class scratch>
 inline void
 execute(state& u, scratch& v, size_t nt, bool iterator, bool parallel)
 {
+  using namespace std::chrono;
+  high_resolution_clock::time_point t1 = high_resolution_clock::now();
+
   Constants c(u.size_x(), u.size_y(), nt);
   double t = solve(u, v, c, iterator, parallel);
   double sum = total(u);
   double err = error(u, c, t);
   std::cerr.unsetf(std::ios::fixed);
   std::cerr << "sum=" << std::setprecision(6) << std::fixed << sum << " error=" << std::setprecision(6) << std::scientific << err << std::endl;
+
+  high_resolution_clock::time_point t2 = high_resolution_clock::now();
+  duration<double> time_span = duration_cast<duration<double> >(t2 - t1);
+  std::cout << "Execution took " << time_span.count() << " seconds.";
+  std::cout << std::endl;
+
+  std::cout << "Total compression time was " << total_time_compress << " seconds.";
+  std::cout << std::endl;
+  std::cout << "Total decompression time was " << total_time_decompress << " seconds.";
+  std::cout << std::endl;
 }
 
 // print usage information

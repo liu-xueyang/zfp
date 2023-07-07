@@ -2,7 +2,12 @@
 #define ZFP_CACHE2_HPP
 
 #include "zfp/internal/array/cache.hpp"
+#include <ctime>
+#include <ratio>
+#include <chrono>
 
+double total_time_compress = 0;
+double total_time_decompress = 0;
 namespace zfp {
 namespace internal {
 
@@ -164,16 +169,27 @@ protected:
   // return cache line for (i, j); may require write-back and fetch
   CacheLine* line(size_t i, size_t j, bool write) const
   {
+    using namespace std::chrono;
     CacheLine* p = 0;
     size_t block_index = store.block_index(i, j);
     typename zfp::internal::Cache<CacheLine>::Tag tag = cache.access(p, (uint)block_index + 1, write);
     size_t stored_block_index = tag.index() - 1;
     if (stored_block_index != block_index) {
       // write back occupied cache line if it is dirty
-      if (tag.dirty())
+      if (tag.dirty()) {
+        high_resolution_clock::time_point t1 = high_resolution_clock::now();
         store.encode(stored_block_index, p->data());
+        high_resolution_clock::time_point t2 = high_resolution_clock::now();
+        duration<double> time_span_compress = duration_cast<duration<double> >(t2 - t1);
+        total_time_compress += time_span_compress.count();
+      }
       // fetch cache line
+      high_resolution_clock::time_point t3 = high_resolution_clock::now();
       store.decode(block_index, p->data());
+      high_resolution_clock::time_point t4 = high_resolution_clock::now();
+      duration<double> time_span_decompress = duration_cast<duration<double> >(t4 - t3);
+      total_time_decompress += time_span_decompress.count();
+      std::cout << "Decompression took " << time_span_decompress.count() << " seconds.";
     }
     return p;
   }
