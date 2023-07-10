@@ -8,6 +8,7 @@
 
 double total_time_compress = 0;
 double total_time_decompress = 0;
+size_t total_decompression = 0, total_compression = 0;
 namespace zfp {
 namespace internal {
 
@@ -182,6 +183,7 @@ protected:
         high_resolution_clock::time_point t2 = high_resolution_clock::now();
         duration<double> time_span_compress = duration_cast<duration<double> >(t2 - t1);
         total_time_compress += time_span_compress.count();
+        total_compression += 1;
       }
       // fetch cache line
       high_resolution_clock::time_point t3 = high_resolution_clock::now();
@@ -189,7 +191,7 @@ protected:
       high_resolution_clock::time_point t4 = high_resolution_clock::now();
       duration<double> time_span_decompress = duration_cast<duration<double> >(t4 - t3);
       total_time_decompress += time_span_decompress.count();
-      std::cout << "Decompression took " << time_span_decompress.count() << " seconds.";
+      total_decompression += 1;
     }
     return p;
   }
