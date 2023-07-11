@@ -307,9 +307,9 @@ execute(state& u, scratch& v, size_t nt, bool iterator, bool parallel)
   std::cout << "Execution took " << time_span.count() << " seconds.";
   std::cout << std::endl;
 
-  std::cout << "Total compression time was " << total_time_compress << " seconds over " << total_compression << " compressions.";
+  std::cout << "Total compression was " << cycles_compression << " cycles over " << total_compression << " compressions.";
   std::cout << std::endl;
-  std::cout << "Total decompression time was " << total_time_decompress << " seconds over " << total_decompression << " decompressions.";
+  std::cout << "Total decompression was " << cycles_decompression << " cycles over " << total_decompression << " decompressions.";
   std::cout << std::endl;
 }
 

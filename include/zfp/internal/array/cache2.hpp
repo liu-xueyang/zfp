@@ -5,10 +5,20 @@
 #include <ctime>
 #include <ratio>
 #include <chrono>
+#include <x86intrin.h>
+
 
 double total_time_compress = 0;
 double total_time_decompress = 0;
 size_t total_decompression = 0, total_compression = 0;
+uint64_t cycles_compression = 0, cycles_decompression = 0;
+
+uint64_t inline rdtsc(){
+    unsigned int lo,hi;
+    __asm__ __volatile__ ("rdtsc" : "=a" (lo), "=d" (hi));
+    return ((uint64_t)hi << 32) | lo;
+}
+
 namespace zfp {
 namespace internal {
 
@@ -175,23 +185,32 @@ protected:
     size_t block_index = store.block_index(i, j);
     typename zfp::internal::Cache<CacheLine>::Tag tag = cache.access(p, (uint)block_index + 1, write);
     size_t stored_block_index = tag.index() - 1;
+    uint64_t c1 = 0, c2 = 0;
     if (stored_block_index != block_index) {
       // write back occupied cache line if it is dirty
       if (tag.dirty()) {
-        high_resolution_clock::time_point t1 = high_resolution_clock::now();
+        // high_resolution_clock::time_point t1 = high_resolution_clock::now();
+        c1 = rdtsc();
         store.encode(stored_block_index, p->data());
-        high_resolution_clock::time_point t2 = high_resolution_clock::now();
-        duration<double> time_span_compress = duration_cast<duration<double> >(t2 - t1);
-        total_time_compress += time_span_compress.count();
+        // high_resolution_clock::time_point t2 = high_resolution_clock::now();
+        c2 = rdtsc();
+        // duration<double> time_span_compress = duration_cast<duration<double> >(t2 - t1);
+        // total_time_compress += time_span_compress.count();
         total_compression += 1;
+        cycles_compression += c2 - c1;
+        // std::cout << "compression cycles "<< c2-c1 << std::endl;
       }
       // fetch cache line
-      high_resolution_clock::time_point t3 = high_resolution_clock::now();
+      // high_resolution_clock::time_point t3 = high_resolution_clock::now();
+      uint64_t c3 = rdtsc();
       store.decode(block_index, p->data());
-      high_resolution_clock::time_point t4 = high_resolution_clock::now();
-      duration<double> time_span_decompress = duration_cast<duration<double> >(t4 - t3);
-      total_time_decompress += time_span_decompress.count();
+      uint64_t c4 = rdtsc();
+      // high_resolution_clock::time_point t4 = high_resolution_clock::now();
+      // duration<double> time_span_decompress = duration_cast<duration<double> >(t4 - t3);
+      // total_time_decompress += time_span_decompress.count();
       total_decompression += 1;
+      cycles_decompression += c4 - c3;
+      std::cout << c2-c1 << ", "<< c4-c3 << std::endl;
     }
     return p;
   }
