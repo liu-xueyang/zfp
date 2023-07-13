@@ -3,6 +3,7 @@
 
 #include "zfp/internal/array/cache.hpp"
 #include <ctime>
+#include <iostream>
 #include <ratio>
 #include <chrono>
 #include <x86intrin.h>
@@ -96,8 +97,12 @@ public:
     const CacheLine* line = cache.lookup((uint)block_index + 1, false);
     if (line)
       line->get(p, sx, sy, store.block_shape(block_index));
-    else
+    else {
+      uint64_t c1 = rdtsc();
       store.decode(block_index, p, sx, sy);
+      uint64_t c2 = rdtsc();
+      fprintf(stderr, "get_block %llu\n", c2-c1);
+    }
   }
 
   // write-no-allocate: copy block to cache on hit, else to store without caching
@@ -106,8 +111,12 @@ public:
     CacheLine* line = cache.lookup((uint)block_index + 1, true);
     if (line)
       line->put(p, sx, sy, store.block_shape(block_index));
-    else
+    else {
+      uint64_t c1 = rdtsc();
       store.encode(block_index, p, sx, sy);
+      uint64_t c2 = rdtsc();
+      fprintf(stderr, "put_block %llu\n", c2-c1);
+    }
   }
 
 protected:
@@ -180,7 +189,7 @@ protected:
   // return cache line for (i, j); may require write-back and fetch
   CacheLine* line(size_t i, size_t j, bool write) const
   {
-    using namespace std::chrono;
+    // using namespace std::chrono;
     CacheLine* p = 0;
     size_t block_index = store.block_index(i, j);
     typename zfp::internal::Cache<CacheLine>::Tag tag = cache.access(p, (uint)block_index + 1, write);
@@ -210,7 +219,7 @@ protected:
       // total_time_decompress += time_span_decompress.count();
       total_decompression += 1;
       cycles_decompression += c4 - c3;
-      std::cout << c2-c1 << ", "<< c4-c3 << std::endl;
+      fprintf(stderr, "%llu,%llu\n", c2-c1 , c4-c3);
     }
     return p;
   }
