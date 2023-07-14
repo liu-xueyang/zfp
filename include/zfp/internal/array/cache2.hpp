@@ -101,7 +101,7 @@ public:
       uint64_t c1 = rdtsc();
       store.decode(block_index, p, sx, sy);
       uint64_t c2 = rdtsc();
-      fprintf(stderr, "get_block %llu\n", c2-c1);
+      fprintf(stderr, "get %llu\n", c2-c1);
     }
   }
 
@@ -115,7 +115,7 @@ public:
       uint64_t c1 = rdtsc();
       store.encode(block_index, p, sx, sy);
       uint64_t c2 = rdtsc();
-      fprintf(stderr, "put_block %llu\n", c2-c1);
+      fprintf(stderr, "put %llu\n", c2-c1);
     }
   }
 
