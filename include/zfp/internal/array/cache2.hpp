@@ -6,7 +6,9 @@
 #include <iostream>
 #include <ratio>
 #include <chrono>
+#if defined(__x86_64__) || defined(_M_X64)
 #include <x86intrin.h>
+#endif
 
 
 double total_time_compress = 0;
@@ -14,11 +16,22 @@ double total_time_decompress = 0;
 size_t total_decompression = 0, total_compression = 0;
 uint64_t cycles_compression = 0, cycles_decompression = 0;
 
+#if defined(__x86_64__) || defined(_M_X64)
 uint64_t inline rdtsc(){
     unsigned int lo,hi;
     __asm__ __volatile__ ("rdtsc" : "=a" (lo), "=d" (hi));
     return ((uint64_t)hi << 32) | lo;
 }
+#endif
+
+#if defined(__GNUC__) && defined(__riscv)  && !defined(HAVE_TICK_COUNTER)
+static __inline__ uint64_t rdtsc(void)
+{
+        uint64_t cycles;
+        __asm__ volatile("rdcycle %0" : "=r"(cycles));
+        return cycles;
+}
+#endif
 
 namespace zfp {
 namespace internal {

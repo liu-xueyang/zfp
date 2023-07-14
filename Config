@@ -1,8 +1,9 @@
+CROSS_COMPILE=
 # compiler executables --------------------------------------------------------
 
-CC = gcc
-CXX = g++
-FC = gfortran
+CC = $(CROSS_COMPILE)gcc
+CXX = $(CROSS_COMPILE)g++
+FC = $(CROSS_COMPILE)gfortran
 
 # language standard -----------------------------------------------------------
 

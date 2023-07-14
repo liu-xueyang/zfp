@@ -28,10 +28,10 @@ DEFS += -DITERS=64
 all: poisson
 
 poisson: poisson.cpp
-	g++ -O3 $< -o $@ $(DEFS) -I../include -L../lib -lzfp
+	$(CROSS_COMPILE)g++ -O3 $< -o $@ $(DEFS) -I../include -L../lib -lzfp
 
 exact: exact.cpp
-	g++ -O3 $< -o $@
+	$(CROSS_COMPILE)g++ -O3 $< -o $@
 
 clean:
 	rm -f poisson exact
